@@ -1,0 +1,170 @@
+
+syntax = "proto3";
+
+package dev.famer.ticketing.proto;
+
+option java_multiple_files = true;
+option java_package = "dev.famer.ticketing.proto";
+
+import "google/protobuf/timestamp.proto";
+
+import "scalapb/scalapb.proto";
+import "google/protobuf/struct.proto";
+
+message Event {
+  oneof kind {
+    Made made = 1;
+    Took took = 2;
+    TookMany tookMany = 3;
+    QuotaAdded quotaAdded = 4;
+    QuotaAdjusted quotaAdjusted = 5;
+    Destroy destroy = 6;
+  }
+
+  message Made {
+    string id = 1;
+    google.protobuf.Timestamp time = 2 [(scalapb.field).no_box = true];
+    int32 quota = 3;
+  }
+  message Took {
+    string id = 1;
+    google.protobuf.Timestamp time = 2 [(scalapb.field).no_box = true];
+    string subject = 3;
+    int32 quota = 4;
+  }
+
+  message TookMany {
+    string id = 1;
+    google.protobuf.Timestamp time = 2 [(scalapb.field).no_box = true];
+    map<string, int32> list = 3;
+  }
+
+  message QuotaAdded {
+    string id = 1;
+    google.protobuf.Timestamp time = 2;
+    int32 quota = 3;
+  }
+
+  message QuotaAdjusted {
+    string id = 1;
+    google.protobuf.Timestamp time = 2;
+    int32 quota = 3;
+  }
+
+  message Destroy {
+    string id = 1;
+    google.protobuf.Timestamp time = 3;
+  }
+}
+
+message Command {
+  oneof kind {
+    Take take = 1;
+    TakeMany takeMany = 2;
+    Make make = 3;
+  }
+
+  message Take {
+    string subject = 1;
+    int32 quota = 2;
+    ActorRefTakeReply replyTo = 3;
+  }
+
+  message TakeMany {
+    map<string, int32> list = 1;
+    ActorRefTakeManyReply replyTo = 3;
+  }
+
+  message Make {
+    int32 quota = 1;
+    ActorRefMakeReply replyTo = 2;
+  }
+}
+
+message ActorRefTakeReply {
+  option (scalapb.message).companion_extends = "dev.famer.ticketing.ActorReferenceCompanion";
+  option (scalapb.message).no_box = true;
+  string serialized = 1  [(scalapb.field).type = "akka.actor.typed.ActorRef[TakeReply]"];
+}
+
+message ActorRefTakeManyReply {
+  option (scalapb.message).companion_extends = "dev.famer.ticketing.ActorReferenceCompanion";
+  option (scalapb.message).no_box = true;
+  string serialized = 1  [(scalapb.field).type = "akka.actor.typed.ActorRef[TakeManyReply]"];
+}
+
+message ActorRefMakeReply {
+  option (scalapb.message).companion_extends = "dev.famer.ticketing.ActorReferenceCompanion";
+  option (scalapb.message).no_box = true;
+  string serialized = 1  [(scalapb.field).type = "akka.actor.typed.ActorRef[MakeReply]"];
+}
+
+
+message TakeReply {
+  oneof kind {
+    Done done = 1;
+    NotFound notFound = 2;
+    Error error = 3;
+    Insufficient insufficient = 4;
+  }
+
+  message Done {}
+
+  message NotFound {}
+
+  message Error {
+    string message = 1;
+  }
+
+  message Insufficient {
+    string message = 1;
+  }
+}
+
+message TakeManyReply {
+  oneof kind {
+    Done done = 1;
+    NotFound notFound = 2;
+    Error error = 3;
+    Insufficient insufficient = 4;
+  }
+
+  message Done {
+    repeated string rejected = 1;
+  }
+
+  message NotFound {}
+
+  message Error {
+    string message = 1;
+  }
+
+  message Insufficient {
+    string message = 1;
+  }
+}
+
+
+message MakeReply {
+  oneof kind {
+    Done done = 1;
+    Error error = 2;
+  }
+
+  message Done {}
+  message Error {
+    string message = 1;
+  }
+}
+
+message State {
+  oneof kind {
+    Has has = 1;
+  }
+
+  message Has {
+    bool available = 1;
+    int32 remain = 2;
+    map<string, int32> applied = 3;
+  }
+}
