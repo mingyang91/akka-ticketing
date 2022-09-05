@@ -114,7 +114,7 @@ object LocalCluster extends App {
       makeReply <- entityRef ? make(512 * 1024)
       _ = println(makeReply.kind)
       begin = System.currentTimeMillis()
-      res <- Future.traverse((1 to 1000000).toVector) { _ =>
+      res <- Future.traverse((1 to 512 * 1024).toVector) { _ =>
         for {
           takeReply <- ingress ? nakedTake(Random.nextString(8), 1)
         } yield if(takeReply.kind.isDone) 1 else 0
@@ -123,7 +123,7 @@ object LocalCluster extends App {
     } yield println(s"!!!: ${end - begin}ms consume ${res.sum}")
   }
 
-  after(30.seconds)(testFlow("coupon-7"))
+  after(30.seconds)(testFlow("coupon-12"))
     .onComplete(res => println(s"RES: $res"))
 }
 

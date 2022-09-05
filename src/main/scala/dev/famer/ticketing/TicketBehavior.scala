@@ -68,18 +68,22 @@ object TicketBehavior {
         if (!state.available) {
           Effect.reply(value.replyTo.serialized)(takeManyError(s"Ticket($ticketId) is disabled"))
         } else {
-          val (_, consume) = value.list.foldLeft((state.remain, Map.empty[String, Int])) { case ((remain, consume), (subject, quota)) =>
-            if (remain > quota) {
-              (remain - quota, consume + (subject -> quota))
-            } else {
-              (remain, consume)
+          if (state.remain <= 0) {
+            Effect.reply(value.replyTo.serialized)(takeManyInsufficientDone("remain is zero"))
+          } else {
+            val (_, consume) = value.list.foldLeft((state.remain, Map.empty[String, Int])) { case ((remain, consume), (subject, quota)) =>
+              if (remain > quota) {
+                (remain - quota, consume + (subject -> quota))
+              } else {
+                (remain, consume)
+              }
             }
-          }
 
-          val rejected = value.list.keySet.removedAll(consume.keySet)
-          Effect.persist(consume.grouped(2048).map(split => eventTookMany(ticketId, split)).toSeq)
-//          Effect.persist(eventTookMany(ticketId, consume))
-            .thenReply(value.replyTo.serialized)(_ => takeManyDone(rejected.toSeq))
+            val rejected = value.list.keySet.removedAll(consume.keySet)
+            Effect.persist(consume.grouped(2048).map(split => eventTookMany(ticketId, split)).toSeq)
+  //          Effect.persist(eventTookMany(ticketId, consume))
+              .thenReply(value.replyTo.serialized)(_ => takeManyDone(rejected.toSeq))
+          }
         }
       case proto.Command.Kind.Make(value) =>
         Effect.reply(value.replyTo.serialized)(makeError("Conflict! ticket has been existed"))
@@ -190,6 +194,13 @@ object TicketBehavior {
     )
   }
 
+  private def takeManyInsufficientDone(msg: String) = {
+    proto.TakeManyReply(
+      proto.TakeManyReply.Kind.Insufficient(
+        proto.TakeManyReply.Insufficient(msg)
+      )
+    )
+  }
 
   private def takeInsufficient(msg: String) = {
     proto.TakeReply(

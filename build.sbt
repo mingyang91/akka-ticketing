@@ -27,3 +27,5 @@ lazy val root = (project in file("."))
       "com.typesafe.akka" %% "akka-http-spray-json" % "10.2.9",
     )
   )
+
+run / fork := true
