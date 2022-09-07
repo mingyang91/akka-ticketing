@@ -22,3 +22,4 @@ project/plugins/project/
 .metals/
 .vscode/
 metals.sbt
+application.conf
