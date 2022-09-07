@@ -11,6 +11,11 @@ import "google/protobuf/timestamp.proto";
 import "scalapb/scalapb.proto";
 import "google/protobuf/struct.proto";
 
+message UUID {
+  uint64 high = 1;
+  uint64 low = 2;
+}
+
 message Event {
   oneof kind {
     Made made = 1;

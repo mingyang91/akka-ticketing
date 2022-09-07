@@ -123,7 +123,7 @@ object LocalCluster extends App {
     } yield println(s"!!!: ${end - begin}ms consume ${res.sum}")
   }
 
-  after(30.seconds)(testFlow("coupon-12"))
+  after(30.seconds)(testFlow("coupon-13"))
     .onComplete(res => println(s"RES: $res"))
 }
 

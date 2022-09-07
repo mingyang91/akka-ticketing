@@ -21,7 +21,11 @@ lazy val root = (project in file("."))
       "com.typesafe.akka" %% "akka-cluster-sharding-typed" % AkkaVersion,
       "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap" % AkkaManagementVersion,
       "ch.qos.logback"                 % "logback-classic" % "1.4.0",
-      "software.aws.mcs" % "aws-sigv4-auth-cassandra-java-driver-plugin" % "4.0.6"
+      "software.aws.mcs" % "aws-sigv4-auth-cassandra-java-driver-plugin" % "4.0.6",
+      "org.postgresql" % "postgresql" % "42.5.0",
+      "io.getquill" %% "quill-jdbc-zio" % "4.4.0",
+      "org.openjdk.jmh" % "jmh-core" % "1.35",
+      "org.openjdk.jmh" % "jmh-generator-annprocess" % "1.35" % "provided"
     ),
     dependencyOverrides ++= Seq(
       "com.typesafe.akka" %% "akka-http-spray-json" % "10.2.9",
