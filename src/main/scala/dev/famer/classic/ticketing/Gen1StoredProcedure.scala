@@ -1,24 +1,19 @@
 package dev.famer.classic.ticketing
 
-import io.getquill.{PostgresZioJdbcContext, SnakeCase}
-import zio.ZIO
+import io.getquill.jdbczio.Quill
+import io.getquill.{CamelCase, NamingStrategy, PostgresEscape, PostgresZioJdbcContext}
+import zio.stream.ZStream
+import zio.{Scope, ZIO, ZIOAppArgs}
 
 import java.sql.SQLException
 import javax.sql.DataSource
-import zio.EnvironmentTag
-import zio.{Scope, ZIOAppArgs, ZLayer}
-import zio.{Scope, ZIOAppArgs}
-import io.getquill.jdbczio.Quill
-import zio.stream.ZStream
-
-case class Order(id: Int)
 
 object Gen1StoredProcedure extends zio.ZIOAppDefault {
   val datasourceLayer = Quill.DataSource.fromPrefix("testPostgresDB")
   override def run: ZIO[Environment with ZIOAppArgs with Scope,Any,Any] = {
 
     val io = ZStream.range(1, 1000000)
-      .mapZIOPar(128) { uid => DB.ordering(uid, 1) }
+      .mapZIOPar(128) { uid => Gen1DB.ordering(uid, 1) }
       .runDrain
 
     val flow = for {
@@ -31,8 +26,8 @@ object Gen1StoredProcedure extends zio.ZIOAppDefault {
 
 }
 
-object DB {
-  lazy val ctx = new PostgresZioJdbcContext(SnakeCase)
+object Gen1DB {
+  lazy val ctx = new PostgresZioJdbcContext(NamingStrategy(CamelCase, PostgresEscape))
 
   import ctx._
   def ordering(userId: Int, productId: Int): ZIO[DataSource, SQLException, Int] = run {
